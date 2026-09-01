@@ -2,7 +2,9 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#ffffff">
+  <meta name="apple-mobile-web-app-capable" content="yes">
   <title>MSpace AI Resume Builder</title>
   <meta name="description" content="Free professional résumé for job applications. MSpace may match strong candidates to VA jobs. M’lang / Davao area, North Cotabato.">
   <link rel="icon" type="image/png" href="assets/logo-official.png">
@@ -11,17 +13,16 @@
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,650&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
 </head>
-<body>
+<body class="app">
   <a class="skip" href="#main">Skip to content</a>
-  <header class="site-header">
-    <div class="wrap">
-      <a class="brand" href="#" id="brand-home">
-        <img src="assets/logo-official.png" width="40" height="40" alt="">
-        <span>
-          <strong>MSpace</strong>
-          <span>AI Resume Builder</span>
-        </span>
-      </a>
+  <header class="app-bar no-print" id="app-bar" hidden>
+    <a class="brand" href="#" id="brand-home">
+      <img src="assets/logo-official.png" width="36" height="36" alt="MSpace">
+      <span class="brand-title">Resume</span>
+    </a>
+    <div class="app-bar-end">
+      <span class="user-chip" id="user-chip" hidden></span>
+      <button class="btn btn-ghost btn-sm" type="button" id="logout-btn">Log out</button>
     </div>
   </header>
 
@@ -39,20 +40,47 @@
   </nav>
 
   <main id="main">
-    <section class="view is-on" id="view-welcome" aria-labelledby="welcome-title">
+    <section class="view is-on" id="view-auth" aria-labelledby="auth-title">
+      <div class="auth-screen">
+        <img class="auth-logo" src="assets/logo-official.png" width="72" height="72" alt="MSpace">
+        <p class="eyebrow">MSpace</p>
+        <h1 id="auth-title">Sign in</h1>
+        <p class="auth-sub">Resume builder is locked until you sign in.</p>
+        <div class="status warn" id="auth-local-banner" hidden>Google isn’t connected yet. Create an account with email to start — we’ll add Gmail next.</div>
+        <button class="btn btn-google" type="button" id="auth-google">Continue with Google</button>
+        <p class="auth-or">or email</p>
+        <form id="auth-email-form" class="auth-form">
+          <div class="field" id="auth-name-wrap" hidden>
+            <label for="auth-name">Display name</label>
+            <input id="auth-name" name="displayName" type="text" autocomplete="name" placeholder="Your name">
+          </div>
+          <div class="field">
+            <label for="auth-email">Email</label>
+            <input id="auth-email" name="email" type="email" autocomplete="email" required>
+          </div>
+          <div class="field">
+            <label for="auth-password">Password</label>
+            <input id="auth-password" name="password" type="password" autocomplete="current-password" required minlength="6">
+          </div>
+          <button class="btn btn-gold btn-block" type="submit" id="auth-submit">Sign in</button>
+        </form>
+        <button class="btn btn-text" type="button" id="auth-mode-toggle">New here? Create account</button>
+        <div class="status" id="auth-status" hidden></div>
+      </div>
+    </section>
+
+    <section class="view" id="view-welcome" aria-labelledby="welcome-title">
       <div class="wrap">
-        <div class="card">
-          <img class="hero-mark" src="assets/logo-official.png" width="96" height="96" alt="MSpace — stacked gold M">
-          <p class="eyebrow">Free · for job applications</p>
-          <h1 id="welcome-title">Build a clean résumé you can send today</h1>
-          <p class="lede">Fill in your details, add a 2×2 formal photo if you have one, and download a print-ready CV. Built for applications in the Philippines — including virtual assistant (VA) roles.</p>
-          <p>If you look like a strong fit, MSpace may reach out about VA job referrals. That is optional. The résumé is yours either way.</p>
+        <div class="screen-pad">
+          <p class="eyebrow">First time</p>
+          <h1 id="welcome-title">Before you start</h1>
+          <p class="hint">Fill in your details, add a 2×2 photo if you have one, then download a print-ready CV. If you look like a strong fit, MSpace may reach out about VA job referrals. Optional — the résumé is yours either way.</p>
           <label class="consent">
             <input type="checkbox" id="consent">
             <span>I agree that MSpace (Multi-spaces) may use the details I enter — and optional photo metadata — to deliver this résumé to me and to consider me for VA job referrals. I can skip the photo. I will not submit without this consent.</span>
           </label>
           <div class="btn-row">
-            <button class="btn btn-gold" type="button" id="start-btn" disabled>Start my résumé</button>
+            <button class="btn btn-gold" type="button" id="start-btn" disabled>Continue</button>
           </div>
         </div>
       </div>
@@ -61,7 +89,7 @@
     <section class="view" id="view-wizard">
       <div class="wrap">
         <form id="wizard-form" novalidate>
-          <div class="step card" data-step="0">
+          <div class="step screen-pad" data-step="0">
             <p class="eyebrow">Step 1 of 6</p>
             <h2>About you</h2>
             <p class="hint">Use the name and contact you want employers to see.</p>
@@ -101,7 +129,7 @@
             </div>
           </div>
 
-          <div class="step card" data-step="1" hidden>
+          <div class="step screen-pad" data-step="1" hidden>
             <p class="eyebrow">Step 2 of 6</p>
             <h2>2×2 formal photo</h2>
             <p class="hint">Upload a selfie or photo. We crop it on your phone to a square ID photo (600×600 px, 2×2 inches at 300 dpi) on a white background. You can skip this.</p>
@@ -133,7 +161,7 @@
             </div>
           </div>
 
-          <div class="step card" data-step="2" hidden>
+          <div class="step screen-pad" data-step="2" hidden>
             <p class="eyebrow">Step 3 of 6</p>
             <h2>Professional summary</h2>
             <p class="hint">A short pitch (3–4 sentences). Write your own, or polish it here — the rewrite runs on this page, not a remote AI.</p>
@@ -154,14 +182,14 @@
             </div>
           </div>
 
-          <div class="step card" data-step="3" hidden>
+          <div class="step screen-pad" data-step="3" hidden>
             <p class="eyebrow">Step 4 of 6</p>
             <h2>Education</h2>
             <div id="edu-list"></div>
             <button class="btn btn-ghost" type="button" id="add-edu">Add school</button>
           </div>
 
-          <div class="step card" data-step="4" hidden>
+          <div class="step screen-pad" data-step="4" hidden>
             <p class="eyebrow">Step 5 of 6</p>
             <h2>Work &amp; freelance</h2>
             <p class="hint">VA and office roles look at this first. Include part-time, family business, or freelance clients.</p>
@@ -185,7 +213,7 @@
             </div>
           </div>
 
-          <div class="step card" data-step="5" hidden>
+          <div class="step screen-pad" data-step="5" hidden>
             <p class="eyebrow">Step 6 of 6</p>
             <h2>References</h2>
             <label class="consent" style="margin-top:0">
@@ -218,7 +246,7 @@
 
     <section class="view" id="view-survey">
       <div class="wrap">
-        <form class="card" id="survey-form">
+        <form class="screen-pad" id="survey-form">
           <p class="eyebrow">Almost done</p>
           <h2>VA job survey</h2>
           <p class="hint">Required before you can send this to MSpace. Helps us know if a VA referral might fit.</p>
@@ -286,6 +314,11 @@
     </section>
   </main>
 
+  <nav class="tab-bar no-print" id="tab-bar" hidden aria-label="App sections">
+    <button type="button" class="tab is-on" data-tab="details">Details</button>
+    <button type="button" class="tab" data-tab="photo">Photo</button>
+    <button type="button" class="tab" data-tab="preview">Preview</button>
+  </nav>
   <footer class="site-footer no-print">
     <div class="wrap">
       <p>MSpace (Multi-spaces) · M’lang / Davao area, North Cotabato · Instagram &amp; Facebook: mspacemind</p>
@@ -293,9 +326,12 @@
     </div>
   </footer>
 
+  <script src="config.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+  <script src="auth.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="config.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

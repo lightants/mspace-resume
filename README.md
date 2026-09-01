@@ -3,7 +3,7 @@
 Static site for job-application résumés (especially VA roles in the Philippines).
 No Node server. Hosts on GitHub Pages as plain files (`lightants/mspace-resume`).
 
-Brand: MSpace (Multi-spaces). Cream / ink / gold.
+Brand: MSpace (Multi-spaces). Light app UI, gold accent #C4A35A, official logo.
 
 ## Local preview
 
@@ -47,3 +47,21 @@ Client-side only: square crop + zoom, drawn onto a white 600×600 canvas (2×2 i
 ## PDF
 
 Print-ready A4 CSS (`@page { size: A4 }`). **Print** uses the browser dialog. **Download PDF** uses html2canvas + jsPDF from CDN (fallback: print).
+
+## Auth (Firebase)
+
+Use Firebase compat 10.14.1 (app + auth) from gstatic.
+
+Put keys in config.js on window.MSPACE_FIREBASE (apiKey, authDomain, projectId, appId).
+Leave empty strings until you have a real Firebase web app. Do not invent keys.
+
+### Console setup
+
+1. Firebase Console: create or open a project, Add app, Web.
+2. Copy apiKey, authDomain, projectId, appId into config.js.
+3. Authentication, Sign-in method: enable Email/Password and Google.
+4. Authorized domains: add GitHub Pages host and localhost.
+
+When keys are filled, auth.js uses Firebase email sign-in, email sign-up with display name, Google popup (redirect fallback), and onAuthStateChanged.
+
+When keys are empty: Google is disabled (Connect Google first). Email uses on-device fallback: accounts in localStorage with SHA-256 of password+email via Web Crypto, never plaintext. Labeled on the login screen. Session is email, name, provider, uid in sessionStorage and localStorage. Log out clears it.

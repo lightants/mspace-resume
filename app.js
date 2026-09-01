@@ -5,7 +5,7 @@
   var PHOTO_MAX_JPEG = 78000;
 
   var state = {
-    view: 'welcome',
+    view: 'auth',
     step: 0,
     consent: false,
     skipPhoto: false,
@@ -139,17 +139,61 @@
     }
   }
 
-  function showView(name) {
-    state.view = name;
-    ['welcome', 'wizard', 'resume', 'survey'].forEach(function (v) {
-      var el = $('view-' + v);
-      if (el) el.classList.toggle('is-on', v === name);
-    });
-    $('progress').hidden = name !== 'wizard';
-    if (name === 'wizard') {
-      showStep(state.step);
+  function currentUser() {
+    return (window.MSpaceAuth && window.MSpaceAuth.currentUser) || null;
+  }
+
+  function updateChrome() {
+    var user = currentUser();
+    var bar = $("app-bar");
+    var tabs = $("tab-bar");
+    var chip = $("user-chip");
+    var onAuth = state.view === "auth" || !user;
+    if (bar) bar.hidden = onAuth;
+    if (tabs) tabs.hidden = onAuth || state.view === "survey";
+    document.body.classList.toggle("is-authed", !!user && state.view !== "auth");
+    document.body.classList.toggle("has-tabs", !!(tabs && !tabs.hidden));
+    if (chip) {
+      if (user) { chip.hidden = false; chip.textContent = user.name || user.email || "Account"; }
+      else { chip.hidden = true; chip.textContent = ""; }
     }
-    if (name === 'resume') renderResume();
+    var prog = $("progress");
+    if (prog) prog.hidden = state.view !== "wizard";
+    document.querySelectorAll("#tab-bar .tab").forEach(function (b) {
+      var tab = b.getAttribute("data-tab");
+      var on = false;
+      if (tab === "details") on = state.view === "wizard" && state.step !== 1;
+      if (tab === "photo") on = state.view === "wizard" && state.step === 1;
+      if (tab === "preview") on = state.view === "resume";
+      b.classList.toggle("is-on", on);
+    });
+  }
+
+  function afterAuth(user) {
+    if (!user) { showView("auth"); return; }
+    if (!state.personal.email && user.email) {
+      state.personal.email = user.email;
+      var em = $("email"); if (em && !em.value) em.value = user.email;
+    }
+    if (!state.personal.fullName && user.name) {
+      state.personal.fullName = user.name;
+      var nm = $("fullName"); if (nm && !nm.value) nm.value = user.name;
+    }
+    if (!state.consent) showView("welcome");
+    else if (state.view === "auth" || state.view === "welcome") showView("wizard");
+    else showView(state.view);
+  }
+
+  function showView(name) {
+    if (name !== "auth" && !currentUser()) name = "auth";
+    state.view = name;
+    ["auth", "welcome", "wizard", "resume", "survey"].forEach(function (v) {
+      var el = $("view-" + v);
+      if (el) el.classList.toggle("is-on", v === name);
+    });
+    if (name === "wizard") showStep(state.step);
+    if (name === "resume") renderResume();
+    updateChrome();
     window.scrollTo(0, 0);
   }
 
@@ -166,6 +210,7 @@
     $('back-btn').textContent = state.step === 0 ? 'Back to welcome' : 'Back';
     $('next-btn').textContent = state.step === 5 ? 'Generate résumé' : 'Continue';
     saveDraft();
+    if (typeof updateChrome === "function") updateChrome();
   }
 
   function validEmail(v) {
@@ -635,7 +680,9 @@
     });
     $('brand-home').addEventListener('click', function (e) {
       e.preventDefault();
-      showView('welcome');
+      if (!currentUser()) showView('auth');
+      else if (!state.consent) showView('welcome');
+      else showView('wizard');
     });
     $('back-btn').addEventListener('click', function () {
       readFormIntoState();
@@ -808,6 +855,16 @@
       submitToMSpace();
     });
 
+    var tabBar = $("tab-bar");
+    if (tabBar) tabBar.addEventListener("click", function (e) {
+      var b = e.target.closest("[data-tab]");
+      if (!b || !currentUser() || !state.consent) return;
+      var tab = b.getAttribute("data-tab");
+      if (tab === "details") { if (state.step === 1) state.step = 0; showView("wizard"); }
+      if (tab === "photo") { state.step = 1; showView("wizard"); }
+      if (tab === "preview") showView("resume");
+    });
+
     ['wizard-form', 'survey-form'].forEach(function (id) {
       $(id).addEventListener('change', saveDraft);
       $(id).addEventListener('input', function () {
@@ -817,7 +874,11 @@
     });
   }
 
+  document.addEventListener('mspace-auth-change', function (e) {
+    afterAuth(e.detail);
+  });
   loadDraft();
   bind();
   fillFormFromState();
+  afterAuth(currentUser());
 })();
