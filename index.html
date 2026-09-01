@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MSpace AI Resume Builder</title>
+  <meta name="description" content="Free professional résumé for job applications. MSpace may match strong candidates to VA jobs. M’lang / Davao area, North Cotabato.">
+  <link rel="icon" type="image/png" href="assets/logo-official.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,650&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <header class="site-header">
+    <div class="wrap">
+      <a class="brand" href="#" id="brand-home">
+        <img src="assets/logo-official.png" width="40" height="40" alt="">
+        <span>
+          <strong>MSpace</strong>
+          <span>AI Resume Builder</span>
+        </span>
+      </a>
+    </div>
+  </header>
+
+  <nav class="progress no-print" id="progress" hidden aria-label="Resume steps">
+    <div class="wrap">
+      <ol>
+        <li><button type="button" data-step="0">Personal</button></li>
+        <li><button type="button" data-step="1">Photo</button></li>
+        <li><button type="button" data-step="2">Summary</button></li>
+        <li><button type="button" data-step="3">Education</button></li>
+        <li><button type="button" data-step="4">Experience</button></li>
+        <li><button type="button" data-step="5">References</button></li>
+      </ol>
+    </div>
+  </nav>
+
+  <main id="main">
+    <section class="view is-on" id="view-welcome" aria-labelledby="welcome-title">
+      <div class="wrap">
+        <div class="card">
+          <img class="hero-mark" src="assets/logo-official.png" width="96" height="96" alt="MSpace — stacked gold M">
+          <p class="eyebrow">Free · for job applications</p>
+          <h1 id="welcome-title">Build a clean résumé you can send today</h1>
+          <p class="lede">Fill in your details, add a 2×2 formal photo if you have one, and download a print-ready CV. Built for applications in the Philippines — including virtual assistant (VA) roles.</p>
+          <p>If you look like a strong fit, MSpace may reach out about VA job referrals. That is optional. The résumé is yours either way.</p>
+          <label class="consent">
+            <input type="checkbox" id="consent">
+            <span>I agree that MSpace (Multi-spaces) may use the details I enter — and optional photo metadata — to deliver this résumé to me and to consider me for VA job referrals. I can skip the photo. I will not submit without this consent.</span>
+          </label>
+          <div class="btn-row">
+            <button class="btn btn-gold" type="button" id="start-btn" disabled>Start my résumé</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="view" id="view-wizard">
+      <div class="wrap">
+        <form id="wizard-form" novalidate>
+          <div class="step card" data-step="0">
+            <p class="eyebrow">Step 1 of 6</p>
+            <h2>About you</h2>
+            <p class="hint">Use the name and contact you want employers to see.</p>
+            <div class="field">
+              <label for="fullName">Full name <span class="req">*</span></label>
+              <input id="fullName" name="fullName" type="text" autocomplete="name" required>
+            </div>
+            <div class="field">
+              <label for="role">Desired role <span class="req">*</span></label>
+              <input id="role" name="role" type="text" placeholder="e.g. Virtual Assistant, Customer Support, Executive Assistant" required>
+            </div>
+            <div class="grid-2">
+              <div class="field">
+                <label for="email">Email <span class="req">*</span></label>
+                <input id="email" name="email" type="email" autocomplete="email" required>
+                <div class="error" id="email-err">Please enter a valid email.</div>
+              </div>
+              <div class="field">
+                <label for="phone">Mobile (PH) <span class="req">*</span></label>
+                <input id="phone" name="phone" type="tel" autocomplete="tel" placeholder="09XXXXXXXXX or +639XXXXXXXXX" required>
+                <div class="error" id="phone-err">Use a PH mobile: 09XXXXXXXXX or +639XXXXXXXXX.</div>
+              </div>
+            </div>
+            <div class="field">
+              <label for="city">City / province <span class="req">*</span></label>
+              <input id="city" name="city" type="text" placeholder="e.g. M’lang, North Cotabato" required>
+            </div>
+            <div class="grid-2">
+              <div class="field">
+                <label for="linkedin">LinkedIn or Facebook (optional)</label>
+                <input id="linkedin" name="linkedin" type="url" placeholder="https://">
+              </div>
+              <div class="field">
+                <label for="languages">Languages</label>
+                <input id="languages" name="languages" type="text" placeholder="Filipino, English">
+              </div>
+            </div>
+          </div>
+
+          <div class="step card" data-step="1" hidden>
+            <p class="eyebrow">Step 2 of 6</p>
+            <h2>2×2 formal photo</h2>
+            <p class="hint">Upload a selfie or photo. We crop it on your phone to a square ID photo (600×600 px, 2×2 inches at 300 dpi) on a white background. You can skip this.</p>
+            <div class="field">
+              <label for="photoFile">Choose photo</label>
+              <input id="photoFile" type="file" accept="image/*">
+            </div>
+            <div class="crop-wrap" id="crop-ui" hidden>
+              <div>
+                <div class="crop-stage" id="crop-stage" aria-label="Drag to position your face">
+                  <img id="crop-img" alt="">
+                </div>
+                <div class="field">
+                  <label for="zoom">Zoom</label>
+                  <input id="zoom" type="range" min="100" max="300" value="100">
+                </div>
+                <div class="btn-row">
+                  <button class="btn btn-gold" type="button" id="apply-crop">Use this crop</button>
+                </div>
+              </div>
+              <div class="crop-preview">
+                <div class="id-slot" id="id-slot">No photo yet</div>
+                <p class="photo-label">2×2 formal photo</p>
+                <button class="btn btn-ghost" type="button" id="dl-2x2" hidden>Download 2×2 PNG</button>
+              </div>
+            </div>
+            <div class="btn-row" style="margin-top:0.8rem">
+              <button class="btn btn-text" type="button" id="skip-photo">Skip photo</button>
+            </div>
+          </div>
+
+          <div class="step card" data-step="2" hidden>
+            <p class="eyebrow">Step 3 of 6</p>
+            <h2>Professional summary</h2>
+            <p class="hint">A short pitch (3–4 sentences). Write your own, or polish it here — the rewrite runs on this page, not a remote AI.</p>
+            <div class="field">
+              <label for="summary">Objective / summary</label>
+              <textarea id="summary" name="summary" rows="6" placeholder="What kind of work you want, how many years, tools you use, and how you help a team."></textarea>
+            </div>
+            <button class="btn btn-ink" type="button" id="polish-btn">Polish with MSpace AI</button>
+            <div class="polish-box" id="polish-box" hidden style="margin-top:1rem">
+              <div class="polish-col">
+                <h3>Before</h3>
+                <p id="polish-before"></p>
+              </div>
+              <div class="polish-col">
+                <h3>After (you can still edit above)</h3>
+                <p id="polish-after"></p>
+              </div>
+            </div>
+          </div>
+
+          <div class="step card" data-step="3" hidden>
+            <p class="eyebrow">Step 4 of 6</p>
+            <h2>Education</h2>
+            <div id="edu-list"></div>
+            <button class="btn btn-ghost" type="button" id="add-edu">Add school</button>
+          </div>
+
+          <div class="step card" data-step="4" hidden>
+            <p class="eyebrow">Step 5 of 6</p>
+            <h2>Work &amp; freelance</h2>
+            <p class="hint">VA and office roles look at this first. Include part-time, family business, or freelance clients.</p>
+            <div id="exp-list"></div>
+            <button class="btn btn-ghost" type="button" id="add-exp">Add role</button>
+            <div class="field" style="margin-top:1.1rem">
+              <label for="skills">Skills &amp; tools</label>
+              <p class="hint">Type and press Enter, or tap a chip.</p>
+              <div class="chips" id="skill-suggestions">
+                <button type="button" class="chip" data-skill="Google Workspace">Google Workspace</button>
+                <button type="button" class="chip" data-skill="Canva">Canva</button>
+                <button type="button" class="chip" data-skill="Excel">Excel</button>
+                <button type="button" class="chip" data-skill="ChatGPT">ChatGPT</button>
+                <button type="button" class="chip" data-skill="Social media">Social media</button>
+                <button type="button" class="chip" data-skill="Customer support">Customer support</button>
+                <button type="button" class="chip" data-skill="Email management">Email management</button>
+                <button type="button" class="chip" data-skill="Calendar management">Calendar management</button>
+              </div>
+              <input id="skill-input" type="text" placeholder="Add a skill">
+              <div class="chips" id="skill-list" aria-live="polite"></div>
+            </div>
+          </div>
+
+          <div class="step card" data-step="5" hidden>
+            <p class="eyebrow">Step 6 of 6</p>
+            <h2>References</h2>
+            <label class="consent" style="margin-top:0">
+              <input type="checkbox" id="refsUponRequest">
+              <span>Show “Available upon request” instead of names on the résumé</span>
+            </label>
+            <div id="ref-list"></div>
+            <button class="btn btn-ghost" type="button" id="add-ref">Add reference</button>
+          </div>
+
+          <div class="btn-row" style="margin-top:1rem">
+            <button class="btn btn-ghost" type="button" id="back-btn">Back</button>
+            <button class="btn btn-gold" type="button" id="next-btn">Continue</button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <section class="view" id="view-resume">
+      <div class="wrap">
+        <div class="resume-tools no-print">
+          <button class="btn btn-gold" type="button" id="print-btn">Print</button>
+          <button class="btn btn-ink" type="button" id="pdf-btn">Download PDF</button>
+          <button class="btn btn-ghost" type="button" id="edit-btn">Edit details</button>
+          <button class="btn btn-gold" type="button" id="to-survey-btn">Continue to survey</button>
+        </div>
+        <article class="resume-sheet resume" id="resume-sheet"></article>
+      </div>
+    </section>
+
+    <section class="view" id="view-survey">
+      <div class="wrap">
+        <form class="card" id="survey-form">
+          <p class="eyebrow">Almost done</p>
+          <h2>VA job survey</h2>
+          <p class="hint">Required before you can send this to MSpace. Helps us know if a VA referral might fit.</p>
+          <div class="field">
+            <span class="lbl">Interested in VA jobs? <span class="req">*</span></span>
+            <div class="radio-row">
+              <label><input type="radio" name="vaInterest" value="yes" required> Yes</label>
+              <label><input type="radio" name="vaInterest" value="maybe"> Maybe</label>
+              <label><input type="radio" name="vaInterest" value="not now"> Not now</label>
+            </div>
+          </div>
+          <div class="field">
+            <label for="hours">Hours available per week <span class="req">*</span></label>
+            <input id="hours" name="hours" type="text" placeholder="e.g. 20, 40, weekends" required>
+          </div>
+          <div class="field">
+            <span class="lbl">Preferred shift <span class="req">*</span></span>
+            <div class="radio-row">
+              <label><input type="radio" name="shift" value="PH day" required> PH day</label>
+              <label><input type="radio" name="shift" value="US night"> US night</label>
+              <label><input type="radio" name="shift" value="flexible"> Flexible</label>
+            </div>
+          </div>
+          <div class="field">
+            <span class="lbl">Tools you know</span>
+            <div class="chips" id="tool-chips">
+              <button type="button" class="chip" data-tool="Google Workspace">Google Workspace</button>
+              <button type="button" class="chip" data-tool="Canva">Canva</button>
+              <button type="button" class="chip" data-tool="Excel">Excel</button>
+              <button type="button" class="chip" data-tool="ChatGPT">ChatGPT</button>
+              <button type="button" class="chip" data-tool="Slack">Slack</button>
+              <button type="button" class="chip" data-tool="Zoom">Zoom</button>
+              <button type="button" class="chip" data-tool="WordPress">WordPress</button>
+            </div>
+          </div>
+          <div class="field">
+            <label for="english">English — written / spoken comfort <span class="req">*</span></label>
+            <select id="english" name="english" required>
+              <option value="">Choose…</option>
+              <option>Comfortable writing and speaking</option>
+              <option>Stronger in writing</option>
+              <option>Stronger in speaking</option>
+              <option>Still building confidence</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="rate">Expected hourly rate (PHP, optional)</label>
+            <input id="rate" name="rate" type="text" placeholder="e.g. 150">
+          </div>
+          <div class="field">
+            <label for="source">How you heard about MSpace</label>
+            <input id="source" name="source" type="text" placeholder="Friend, Instagram @mspacemind, walk-in…">
+          </div>
+          <div class="field">
+            <label for="notes">Anything else</label>
+            <textarea id="notes" name="notes" rows="3"></textarea>
+          </div>
+          <div class="btn-row">
+            <button class="btn btn-ghost" type="button" id="survey-back">Back to résumé</button>
+            <button class="btn btn-gold" type="submit" id="submit-btn">Submit to MSpace</button>
+          </div>
+          <div class="status" id="submit-status" hidden></div>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer no-print">
+    <div class="wrap">
+      <p>MSpace (Multi-spaces) · M’lang / Davao area, North Cotabato · Instagram &amp; Facebook: mspacemind</p>
+      <p>Résumé stays on this device until you submit. Clyde A.</p>
+    </div>
+  </footer>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
