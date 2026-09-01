@@ -119,7 +119,6 @@
     $('refsUponRequest').checked = state.refsUponRequest;
     $('hours').value = state.survey.hours;
     $('english').value = state.survey.english;
-    $('rate').value = state.survey.rate;
     $('source').value = state.survey.source;
     $('notes').value = state.survey.notes;
     document.querySelectorAll('input[name="vaInterest"]').forEach(function (r) {
@@ -574,15 +573,7 @@
 
   function payload(photoField) {
     readFormIntoState();
-    state.survey.hours = $('hours').value.trim();
-    state.survey.english = $('english').value;
-    state.survey.rate = $('rate').value.trim();
-    state.survey.source = $('source').value.trim();
-    state.survey.notes = $('notes').value.trim();
-    var va = document.querySelector('input[name="vaInterest"]:checked');
-    var sh = document.querySelector('input[name="shift"]:checked');
-    state.survey.vaInterest = va ? va.value : '';
-    state.survey.shift = sh ? sh.value : '';
+    readSurveyIntoState();
     return {
       Timestamp: new Date().toISOString(),
       Name: state.personal.fullName,
@@ -597,21 +588,36 @@
       Experience: JSON.stringify(state.experience),
       Skills: state.skills.join(', '),
       References: state.refsUponRequest ? 'Available upon request' : JSON.stringify(state.references),
+      Status: 'New',
+      AccountEmail: (currentUser() && currentUser().email) || '',
+      DesiredRole: state.personal.role,
       PhotoNote: photoField || state.photoNote || (state.skipPhoto ? 'skipped' : 'photo attached locally'),
       VAInterest: state.survey.vaInterest,
-      Hours: state.survey.hours,
-      Shift: state.survey.shift,
+      HoursAvailable: state.survey.hours,
+      PreferredShift: state.survey.shift,
       Tools: state.surveyTools.join(', '),
       English: state.survey.english,
-      Rate: state.survey.rate,
-      Source: state.survey.source,
+      HeardAboutMSpace: state.survey.source,
       Notes: state.survey.notes,
-      Consent: state.consent ? 'yes' : 'no'
+      Consent: state.consent ? 'yes' : 'no',
+      Channel: 'MSpace Resume Builder'
     };
+  }
+
+  function readSurveyIntoState() {
+    if ($('hours')) state.survey.hours = $('hours').value.trim();
+    if ($('english')) state.survey.english = $('english').value;
+    if ($('source')) state.survey.source = $('source').value.trim();
+    if ($('notes')) state.survey.notes = $('notes').value.trim();
+    var va = document.querySelector('#survey-form input[name="vaInterest"]:checked');
+    var sh = document.querySelector('#survey-form input[name="shift"]:checked');
+    state.survey.vaInterest = va ? va.value : '';
+    state.survey.shift = sh ? sh.value : '';
   }
 
   function submitToMSpace() {
     var status = $('submit-status');
+    readSurveyIntoState();
     if (!state.consent) {
       status.hidden = false;
       status.className = 'status warn';
@@ -621,7 +627,12 @@
     if (!state.survey.vaInterest || !state.survey.hours || !state.survey.shift || !state.survey.english) {
       status.hidden = false;
       status.className = 'status warn';
-      status.textContent = 'Please complete the required survey fields.';
+      var missing = [];
+      if (!state.survey.vaInterest) missing.push('VA interest');
+      if (!state.survey.hours) missing.push('hours');
+      if (!state.survey.shift) missing.push('shift');
+      if (!state.survey.english) missing.push('English');
+      status.textContent = 'Still needed: ' + missing.join(', ') + '.';
       return;
     }
     var url = (window.MSPACE_SHEETS_WEBHOOK || '').trim();
@@ -784,8 +795,7 @@
       saveDraft();
     });
 
-    $('photoFile').addEventListener('change', function () {
-      var file = this.files && this.files[0];
+    function loadPhotoFile(file) {
       if (!file) return;
       var url = URL.createObjectURL(file);
       var img = new Image();
@@ -802,7 +812,53 @@
         applyCropTransform();
       };
       img.src = url;
+    }
+    var selfieStream = null;
+    function stopSelfie() {
+      if (selfieStream) {
+        selfieStream.getTracks().forEach(function (tr) { tr.stop(); });
+        selfieStream = null;
+      }
+      var live = $('selfie-live');
+      if (live) live.hidden = true;
+    }
+    $('photoFile').addEventListener('change', function () {
+      loadPhotoFile(this.files && this.files[0]);
     });
+    var selfieFile = $('photoSelfie');
+    if (selfieFile) selfieFile.addEventListener('change', function () {
+      loadPhotoFile(this.files && this.files[0]);
+    });
+    var selfieBtn = $('selfie-btn');
+    if (selfieBtn) selfieBtn.addEventListener('click', function () {
+      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: 720, height: 720 } }).then(function (stream) {
+          selfieStream = stream;
+          $('selfie-live').hidden = false;
+          $('selfie-video').srcObject = stream;
+        }).catch(function () {
+          if (selfieFile) selfieFile.click();
+        });
+      } else if (selfieFile) {
+        selfieFile.click();
+      }
+    });
+    var snap = $('selfie-snap');
+    if (snap) snap.addEventListener('click', function () {
+      var video = $('selfie-video');
+      if (!video || !video.videoWidth) return;
+      var canvas = document.createElement('canvas');
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      canvas.getContext('2d').drawImage(video, 0, 0);
+      stopSelfie();
+      canvas.toBlob(function (blob) {
+        if (!blob) return;
+        loadPhotoFile(new File([blob], 'selfie.jpg', { type: 'image/jpeg' }));
+      }, 'image/jpeg', 0.92);
+    });
+    var cancelCam = $('selfie-cancel');
+    if (cancelCam) cancelCam.addEventListener('click', stopSelfie);
     $('zoom').addEventListener('input', function () {
       crop.zoom = Number(this.value) / 100;
       applyCropTransform();

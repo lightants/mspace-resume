@@ -2,8 +2,11 @@
 'use strict';
 var SESSION_KEY = "mspace-current-user";
 var LOCAL_ACCOUNTS_KEY = "mspace-local-accounts-v1";
-var cfg = global.MSPACE_FIREBASE || {};
+function getCfg() {
+  return global.MSPACE_FIREBASE || {};
+}
 function firebaseConfigured() {
+  var cfg = getCfg();
   return !!(cfg.apiKey && cfg.authDomain && cfg.projectId && cfg.appId);
 }
 function getSession() {
@@ -70,6 +73,7 @@ function mapFbUser(u) {
 function initFirebase() {
   if (!firebaseConfigured() || !global.firebase) return false;
   try {
+    var cfg = getCfg();
     if (!global.firebase.apps.length) {
       global.firebase.initializeApp({ apiKey: cfg.apiKey, authDomain: cfg.authDomain, projectId: cfg.projectId, appId: cfg.appId });
     }
@@ -143,8 +147,11 @@ function bindUi() {
   }
   if (!firebaseConfigured()) {
     if (banner) banner.hidden = false;
-    if (googleBtn) { googleBtn.disabled = true; googleBtn.textContent = "Connect Google first"; }
-  } else { if (banner) banner.hidden = true; if (googleBtn) googleBtn.disabled = false; }
+    if (googleBtn) { googleBtn.disabled = false; googleBtn.textContent = "Continue with Google"; }
+  } else {
+    if (banner) banner.hidden = true;
+    if (googleBtn) { googleBtn.disabled = false; googleBtn.textContent = "Continue with Google"; }
+  }
   if (modeToggle) modeToggle.addEventListener("click", function () {
     mode = mode === "signin" ? "signup" : "signin";
     if (nameField) nameField.hidden = mode !== "signup";
@@ -154,7 +161,9 @@ function bindUi() {
     if (title) title.textContent = mode === "signup" ? "Create account" : "Sign in";
   });
   if (googleBtn) googleBtn.addEventListener("click", function () {
-    if (!firebaseConfigured()) { setStatus("Connect Google first", "warn"); return; }
+    if (!firebaseConfigured()) { setStatus("Google sign-in is not configured yet.", "warn"); return; }
+    if (!global.firebase) { setStatus("Google library still loading. Try again.", "warn"); return; }
+    if (!fbAuth) initFirebase();
     setStatus("Opening Google...");
     signInGoogle().catch(function (err) { setStatus(friendlyError(err), "warn"); });
   });

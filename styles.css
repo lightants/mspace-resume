@@ -468,3 +468,16 @@ textarea { min-height: 120px; resize: vertical; }
   .view { padding-bottom: 2.5rem; }
 }
 .resume-name { font-family: var(--serif); }
+
+.btn-google {
+  display: inline-flex; align-items: center; justify-content: center; gap: 0.6rem;
+  background: #fff !important; color: #1f1f1f !important; border: 1px solid #dadce0 !important;
+  font-weight: 650; opacity: 1 !important;
+}
+.btn-google .g-icon { flex: 0 0 18px; }
+
+.selfie-live { margin: 0.8rem 0 1rem; }
+.selfie-live video {
+  width: 100%; max-width: 320px; aspect-ratio: 1; object-fit: cover;
+  border-radius: 12px; background: #111; display: block; margin-bottom: 0.6rem;
+}
