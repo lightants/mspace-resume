@@ -11,7 +11,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,650&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=20260901f">
+  <link rel="stylesheet" href="styles.css?v=20260902a">
 </head>
 <body class="app">
   <a class="skip" href="#main">Skip to content</a>
@@ -135,7 +135,7 @@
           <div class="step screen-pad" data-step="1" hidden>
             <p class="eyebrow">Step 2 of 6</p>
             <h2>2×2 formal photo</h2>
-            <p class="hint">Upload a selfie or photo. We crop it on your phone to a square ID photo (600×600 px, 2×2 inches at 300 dpi) on a white background. You can skip this.</p>
+            <p class="hint">Upload a photo or take a selfie. Crop to a 2×2 ID shot, then optionally add business attire. Flip the camera if the front lens is too close.</p>
             <div class="field">
               <label for="photoFile">Choose photo</label>
               <input id="photoFile" type="file" accept="image/*">
@@ -147,6 +147,7 @@
             <div id="selfie-live" hidden class="selfie-live">
               <video id="selfie-video" autoplay playsinline muted></video>
               <div class="btn-row">
+                <button class="btn btn-ink" type="button" id="selfie-flip">Flip camera</button>
                 <button class="btn btn-gold" type="button" id="selfie-snap">Use this shot</button>
                 <button class="btn btn-ghost" type="button" id="selfie-cancel">Cancel camera</button>
               </div>
@@ -167,6 +168,8 @@
               <div class="crop-preview">
                 <div class="id-slot" id="id-slot">No photo yet</div>
                 <p class="photo-label">2×2 formal photo</p>
+                <button class="btn btn-ink" type="button" id="formal-attire-btn" hidden>Add business attire</button>
+                <button class="btn btn-text" type="button" id="formal-undo-btn" hidden>Undo attire</button>
                 <button class="btn btn-ghost" type="button" id="dl-2x2" hidden>Download 2×2 PNG</button>
               </div>
             </div>
@@ -336,12 +339,12 @@
     </div>
   </footer>
 
-  <script src="config.js?v=20260901f"></script>
+  <script src="config.js?v=20260902a"></script>
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
-  <script src="auth.js?v=20260901f"></script>
+  <script src="auth.js?v=20260902a"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="app.js?v=20260901f"></script>
+  <script src="app.js?v=20260902a"></script>
 </body>
 </html>

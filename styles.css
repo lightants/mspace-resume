@@ -481,3 +481,6 @@ textarea { min-height: 120px; resize: vertical; }
   width: 100%; max-width: 320px; aspect-ratio: 1; object-fit: cover;
   border-radius: 12px; background: #111; display: block; margin-bottom: 0.6rem;
 }
+
+.selfie-live video.is-mirror { transform: scaleX(-1); }
+.crop-preview .btn { width: 100%; margin-top: 0.45rem; }
