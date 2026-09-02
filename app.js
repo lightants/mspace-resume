@@ -382,55 +382,50 @@
     state.photoNote = '2x2 PNG generated on device (600x600)';
     state.skipPhoto = false;
     showIdPreview(state.photoDataUrl);
-    var fbtn = $('formal-attire-btn');
-    var ubtn = $('formal-undo-btn');
-    if (fbtn) fbtn.hidden = false;
-    if (ubtn) ubtn.hidden = true;
     saveDraft();
+    autoFormalAttire(state.photoDataUrl);
   }
 
 
-  function applyBusinessAttire() {
-    var src = state.photoOriginalDataUrl || state.photoDataUrl;
-    if (!src) return;
-    var fbtn = $('formal-attire-btn');
-    if (fbtn) { fbtn.disabled = true; fbtn.textContent = 'Adding attire…'; }
-    var face = new Image();
-    var suit = new Image();
-    suit.crossOrigin = 'anonymous';
-    var loaded = 0;
-    function go() {
-      loaded += 1;
-      if (loaded < 2) return;
-      var OUT = 600;
-      var canvas = document.createElement('canvas');
-      canvas.width = OUT;
-      canvas.height = OUT;
-      var ctx = canvas.getContext('2d');
-      ctx.fillStyle = '#f4f6f8';
-      ctx.fillRect(0, 0, OUT, OUT);
-      ctx.filter = 'contrast(1.06) saturate(0.92)';
-      ctx.drawImage(face, 0, 0, OUT, OUT);
-      ctx.filter = 'none';
-      var suitH = Math.round(OUT * 0.62);
-      var suitY = OUT - suitH;
-      ctx.drawImage(suit, 0, suitY, OUT, suitH);
-      state.photoDataUrl = canvas.toDataURL('image/png');
-      state.photoNote = '2x2 PNG with business attire overlay';
-      showIdPreview(state.photoDataUrl);
-      if (fbtn) { fbtn.disabled = false; fbtn.textContent = 'Add business attire'; fbtn.hidden = true; }
-      var ubtn = $('formal-undo-btn');
-      if (ubtn) ubtn.hidden = false;
+  var FORMAL_LOOKS = [
+    'a navy blue blazer and a crisp white dress shirt, no tie',
+    'a charcoal gray suit jacket and a light blue collared shirt',
+    'a black blazer and a white blouse with a modest neckline',
+    'a dark gray suit and a white shirt, top button open',
+    'a navy knit blazer and a cream collared shirt'
+  ];
+
+  function setPhotoStatus(msg) {
+    var el = $('photo-status');
+    if (!el) return;
+    el.hidden = !msg;
+    el.textContent = msg || '';
+  }
+
+  function autoFormalAttire(dataUrl) {
+    var url = (window.MSPACE_SHEETS_WEBHOOK || '').trim();
+    if (!url || !dataUrl) return;
+    setPhotoStatus('Creating a formal resume photo…');
+    var look = FORMAL_LOOKS[Math.floor(Math.random() * FORMAL_LOOKS.length)];
+    var b64 = dataUrl.split(',')[1] || '';
+    var mime = (dataUrl.split(';')[0] || 'data:image/png').replace('data:', '');
+    fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ action: 'formalize', image: b64, mimeType: mime, look: look })
+    }).then(function (res) { return res.text(); }).then(function (txt) {
+      var data;
+      try { data = JSON.parse(txt); } catch (e) { throw new Error('bad json'); }
+      if (!data || !data.ok || !data.image) throw new Error(data && data.error ? data.error : 'no image');
+      var img = 'data:' + (data.mimeType || 'image/png') + ';base64,' + data.image;
+      state.photoDataUrl = img;
+      state.photoNote = '2x2 AI formal attire (' + look + ')';
+      showIdPreview(img);
       saveDraft();
-    }
-    face.onload = go;
-    suit.onload = go;
-    suit.onerror = function () {
-      if (fbtn) { fbtn.disabled = false; fbtn.textContent = 'Add business attire'; }
-      alert('Could not load the attire overlay. Try again.');
-    };
-    face.src = src;
-    suit.src = 'assets/suit-overlay.png';
+      setPhotoStatus('Formal attire applied.');
+    }).catch(function () {
+      setPhotoStatus('Kept your crop. Formal edit could not run — try again later.');
+    });
   }
 
   function showIdPreview(url) {
@@ -884,7 +879,7 @@
         selfieStream = stream;
         $('selfie-live').hidden = false;
         video.srcObject = stream;
-        video.classList.toggle('is-mirror', facingMode === 'user');
+        video.classList.add('is-mirror');
         video.play && video.play();
       }).catch(function () {
         if (selfieFile) selfieFile.click();
@@ -902,11 +897,6 @@
       facingMode = 'user';
       startCamera();
     });
-    var flipBtn = $('selfie-flip');
-    if (flipBtn) flipBtn.addEventListener('click', function () {
-      facingMode = facingMode === 'user' ? 'environment' : 'user';
-      startCamera();
-    });
     var snap = $('selfie-snap');
     if (snap) snap.addEventListener('click', function () {
       var video = $('selfie-video');
@@ -915,10 +905,8 @@
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
       var ctx = canvas.getContext('2d');
-      if (facingMode === 'user') {
-        ctx.translate(canvas.width, 0);
-        ctx.scale(-1, 1);
-      }
+      ctx.translate(canvas.width, 0);
+      ctx.scale(-1, 1);
       ctx.drawImage(video, 0, 0);
       stopSelfie();
       canvas.toBlob(function (blob) {
@@ -928,18 +916,47 @@
     });
     var cancelCam = $('selfie-cancel');
     if (cancelCam) cancelCam.addEventListener('click', stopSelfie);
-    var formalBtn = $('formal-attire-btn');
-    if (formalBtn) formalBtn.addEventListener('click', applyBusinessAttire);
-    var undoBtn = $('formal-undo-btn');
-    if (undoBtn) undoBtn.addEventListener('click', function () {
-      if (!state.photoOriginalDataUrl) return;
-      state.photoDataUrl = state.photoOriginalDataUrl;
-      state.photoNote = '2x2 PNG generated on device (600x600)';
-      showIdPreview(state.photoDataUrl);
-      formalBtn.hidden = false;
-      undoBtn.hidden = true;
-      saveDraft();
-    });
+    function flipCropHorizontal() {
+      var src = crop.img || $('crop-img');
+      if (!src || !src.naturalWidth && !crop.naturalW) return;
+      var w = crop.naturalW || src.naturalWidth;
+      var h = crop.naturalH || src.naturalHeight;
+      var canvas = document.createElement('canvas');
+      canvas.width = w;
+      canvas.height = h;
+      var ctx = canvas.getContext('2d');
+      ctx.translate(w, 0);
+      ctx.scale(-1, 1);
+      ctx.drawImage(src, 0, 0, w, h);
+      var url = canvas.toDataURL('image/jpeg', 0.92);
+      var img = new Image();
+      img.onload = function () {
+        crop.img = img;
+        crop.naturalW = img.naturalWidth;
+        crop.naturalH = img.naturalHeight;
+        $('crop-img').src = url;
+        applyCropTransform();
+      };
+      img.src = url;
+      if (state.photoDataUrl) {
+        var p = new Image();
+        p.onload = function () {
+          var c2 = document.createElement('canvas');
+          c2.width = p.naturalWidth;
+          c2.height = p.naturalHeight;
+          var g = c2.getContext('2d');
+          g.translate(c2.width, 0);
+          g.scale(-1, 1);
+          g.drawImage(p, 0, 0);
+          state.photoDataUrl = c2.toDataURL('image/png');
+          state.photoOriginalDataUrl = state.photoDataUrl;
+          showIdPreview(state.photoDataUrl);
+          saveDraft();
+        };
+        p.src = state.photoDataUrl;
+      }
+    }
+
     $('zoom').addEventListener('input', function () {
       crop.zoom = Number(this.value) / 100;
       applyCropTransform();
