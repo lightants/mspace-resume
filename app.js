@@ -383,50 +383,9 @@
     state.skipPhoto = false;
     showIdPreview(state.photoDataUrl);
     saveDraft();
-    autoFormalAttire(state.photoDataUrl);
   }
 
 
-  var FORMAL_LOOKS = [
-    'a navy blue blazer and a crisp white dress shirt, no tie',
-    'a charcoal gray suit jacket and a light blue collared shirt',
-    'a black blazer and a white blouse with a modest neckline',
-    'a dark gray suit and a white shirt, top button open',
-    'a navy knit blazer and a cream collared shirt'
-  ];
-
-  function setPhotoStatus(msg) {
-    var el = $('photo-status');
-    if (!el) return;
-    el.hidden = !msg;
-    el.textContent = msg || '';
-  }
-
-  function autoFormalAttire(dataUrl) {
-    var url = (window.MSPACE_SHEETS_WEBHOOK || '').trim();
-    if (!url || !dataUrl) return;
-    setPhotoStatus('Creating a formal resume photo…');
-    var look = FORMAL_LOOKS[Math.floor(Math.random() * FORMAL_LOOKS.length)];
-    var b64 = dataUrl.split(',')[1] || '';
-    var mime = (dataUrl.split(';')[0] || 'data:image/png').replace('data:', '');
-    fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify({ action: 'formalize', image: b64, mimeType: mime, look: look })
-    }).then(function (res) { return res.text(); }).then(function (txt) {
-      var data;
-      try { data = JSON.parse(txt); } catch (e) { throw new Error('bad json'); }
-      if (!data || !data.ok || !data.image) throw new Error(data && data.error ? data.error : 'no image');
-      var img = 'data:' + (data.mimeType || 'image/png') + ';base64,' + data.image;
-      state.photoDataUrl = img;
-      state.photoNote = '2x2 AI formal attire (' + look + ')';
-      showIdPreview(img);
-      saveDraft();
-      setPhotoStatus('Formal attire applied.');
-    }).catch(function () {
-      setPhotoStatus('Kept your crop. Formal edit could not run — try again later.');
-    });
-  }
 
   function showIdPreview(url) {
     var slot = $('id-slot');
