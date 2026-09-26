@@ -545,32 +545,174 @@
       '<h3>Education</h3>' + eduHtml +
       '<h3>Skills</h3>' + skills +
       '<h3>References</h3>' + refs;
+    fitResumeToViewport();
+  }
+
+  var pdfBlobUrl = '';
+  var pdfFilename = 'resume_MSpace_Resume.pdf';
+  var pendingPdfFile = null;
+
+  function isIOS() {
+    var ua = navigator.userAgent || '';
+    if (/iPad|iPhone|iPod/.test(ua)) return true;
+    return navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1;
+  }
+
+  function setPdfStatus(text, kind) {
+    var el = $('pdf-status');
+    if (!el) return;
+    el.hidden = !text;
+    el.textContent = text || '';
+    el.className = 'status no-print' + (kind ? ' ' + kind : '');
+  }
+
+  function fitResumeToViewport() {
+    var sheet = $('resume-sheet');
+    var fit = $('resume-fit');
+    if (!sheet || !fit) return;
+    if (document.documentElement.classList.contains('is-pdf-capture')) return;
+    if (window.matchMedia('print').matches) return;
+    var mobile = window.matchMedia('(max-width: 820px)').matches;
+    if (!mobile) {
+      sheet.style.zoom = '';
+      return;
+    }
+    sheet.style.zoom = '1';
+    var avail = fit.clientWidth;
+    var natural = sheet.offsetWidth;
+    if (!avail || !natural) return;
+    var scale = Math.min(1, (avail - 2) / natural);
+    sheet.style.zoom = String(Math.max(scale, 0.2));
+  }
+
+  function rememberPdfBlob(blob) {
+    var previous = pdfBlobUrl;
+    pdfBlobUrl = URL.createObjectURL(blob);
+    if (previous) setTimeout(function () { URL.revokeObjectURL(previous); }, 60000);
+    return pdfBlobUrl;
+  }
+
+  function canSharePdfFile(file) {
+    if (!file || !navigator.share || !navigator.canShare) return false;
+    try { return navigator.canShare({ files: [file] }); }
+    catch (e) { return false; }
+  }
+
+  function publishPdf(blob, filename) {
+    var url = rememberPdfBlob(blob);
+    pdfFilename = filename;
+    try {
+      pendingPdfFile = new File([blob], filename, { type: 'application/pdf' });
+    } catch (e) {
+      pendingPdfFile = null;
+    }
+    var link = $('pdf-file-link');
+    if (!link) return url;
+    link.href = url;
+    link.rel = 'noopener';
+    link.textContent = 'Save PDF';
+    if (isIOS()) {
+      link.removeAttribute('download');
+      link.target = '_blank';
+    } else {
+      link.download = filename;
+      link.removeAttribute('target');
+    }
+    link.hidden = false;
+    return url;
+  }
+
+  function triggerBlobDownload(url, filename) {
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.rel = 'noopener';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  }
+
+  function addCanvasToPdf(pdf, canvas) {
+    var pageW = 210;
+    var pageH = 297;
+    var imgW = pageW;
+    var imgH = canvas.height * pageW / canvas.width;
+    var img = canvas.toDataURL('image/jpeg', 0.92);
+    var heightLeft = imgH;
+    var position = 0;
+    pdf.addImage(img, 'JPEG', 0, position, imgW, imgH);
+    heightLeft -= pageH;
+    while (heightLeft > 8) {
+      position -= pageH;
+      pdf.addPage();
+      pdf.addImage(img, 'JPEG', 0, position, imgW, imgH);
+      heightLeft -= pageH;
+    }
   }
 
   function downloadPdf() {
     var sheet = $('resume-sheet');
     var h2c = window.html2canvas;
     var JSPDF = window.jspdf && window.jspdf.jsPDF;
+    var btn = $('pdf-btn');
+    if (!sheet) return;
     if (!h2c || !JSPDF) {
-      window.print();
+      setPdfStatus('PDF tools did not load. Use Print, then choose Save as PDF.', 'warn');
       return;
     }
-    h2c(sheet, { scale: 2, useCORS: true, backgroundColor: '#ffffff' }).then(function (canvas) {
-      var img = canvas.toDataURL('image/jpeg', 0.92);
-      var pdf = new JSPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
-      var pageW = 210;
-      var pageH = 297;
-      var imgW = pageW;
-      var imgH = canvas.height * pageW / canvas.width;
-      if (imgH > pageH) {
-        pdf.addImage(img, 'JPEG', 0, 0, imgW, imgH);
-      } else {
-        pdf.addImage(img, 'JPEG', 0, 0, imgW, imgH);
+    var iosTab = null;
+    if (isIOS()) {
+      iosTab = window.open('', '_blank');
+      if (iosTab) {
+        try {
+          iosTab.document.open();
+          iosTab.document.write('<!DOCTYPE html><html><head><meta name="viewport" content="width=device-width, initial-scale=1"><title>Preparing PDF</title></head><body style="font-family:system-ui,sans-serif;padding:1.5rem"><p>Preparing your résumé…</p></body></html>');
+          iosTab.document.close();
+        } catch (e) { /* tab may still accept a later location */ }
       }
-      var name = (state.personal.fullName || 'resume').replace(/[^\w\-]+/g, '_');
-      pdf.save(name + '_MSpace_Resume.pdf');
+    }
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = 'Preparing PDF…';
+    }
+    var savedScroll = window.scrollY;
+    var busy = $('pdf-busy');
+    if (busy) busy.hidden = false;
+    setPdfStatus('Preparing your PDF…', '');
+    sheet.style.zoom = '1';
+    document.documentElement.classList.add('is-pdf-capture');
+    void sheet.offsetWidth;
+
+    h2c(sheet, { scale: 2, useCORS: true, backgroundColor: '#ffffff', logging: false }).then(function (canvas) {
+      var pdf = new JSPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
+      addCanvasToPdf(pdf, canvas);
+      var name = (state.personal.fullName || 'resume').replace(/[^\w\-]+/g, '_').replace(/^_+|_+$/g, '') || 'resume';
+      var filename = name + '_MSpace_Resume.pdf';
+      var blob = pdf.output('blob');
+      var url = publishPdf(blob, filename);
+      if (isIOS()) {
+        if (iosTab) {
+          iosTab.location.href = url;
+          setPdfStatus('PDF opened in a new tab — pinch to zoom, then use Share to save it. Or tap Save PDF.', 'ok');
+        } else {
+          setPdfStatus('PDF ready. Tap Save PDF, then choose Save to Files or open it.', 'ok');
+        }
+      } else {
+        triggerBlobDownload(url, filename);
+        setPdfStatus('Download started. If nothing saved, tap Save PDF.', 'ok');
+      }
     }).catch(function () {
-      window.print();
+      if (iosTab && !iosTab.closed) iosTab.close();
+      setPdfStatus('Could not build the PDF. Use Print, then choose Save as PDF.', 'warn');
+    }).then(function () {
+      document.documentElement.classList.remove('is-pdf-capture');
+      if (busy) busy.hidden = true;
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = 'Download PDF';
+      }
+      fitResumeToViewport();
+      window.scrollTo(0, savedScroll);
     });
   }
 
@@ -960,6 +1102,32 @@
 
     $('print-btn').addEventListener('click', function () { window.print(); });
     $('pdf-btn').addEventListener('click', downloadPdf);
+    var pdfLink = $('pdf-file-link');
+    if (pdfLink) pdfLink.addEventListener('click', function (e) {
+      if (!pdfBlobUrl) { e.preventDefault(); return; }
+      if (!isIOS()) return;
+      e.preventDefault();
+      if (canSharePdfFile(pendingPdfFile)) {
+        navigator.share({ files: [pendingPdfFile], title: pdfFilename }).catch(function (err) {
+          if (err && err.name === 'AbortError') return;
+          window.open(pdfBlobUrl, '_blank', 'noopener');
+        });
+        return;
+      }
+      var tab = window.open(pdfBlobUrl, '_blank', 'noopener');
+      if (!tab) window.location.assign(pdfBlobUrl);
+    });
+    var fitQueued = false;
+    function queueFitResume() {
+      if (fitQueued) return;
+      fitQueued = true;
+      requestAnimationFrame(function () {
+        fitQueued = false;
+        if (state.view === 'resume') fitResumeToViewport();
+      });
+    }
+    window.addEventListener('resize', queueFitResume);
+    window.addEventListener('orientationchange', queueFitResume);
     $('edit-btn').addEventListener('click', function () { showView('wizard'); });
     $('to-survey-btn').addEventListener('click', function () { showView('survey'); });
     $('survey-back').addEventListener('click', function () { showView('resume'); });

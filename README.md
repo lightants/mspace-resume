@@ -46,7 +46,9 @@ Client-side only: square crop + zoom, drawn onto a white 600×600 canvas (2×2 i
 
 ## PDF
 
-Print-ready A4 CSS (`@page { size: A4 }`). **Print** uses the browser dialog. **Download PDF** uses html2canvas + jsPDF from CDN (fallback: print).
+Print-ready A4 CSS (`@page { size: A4 }`). **Print** uses the browser dialog. **Download PDF** uses html2canvas + jsPDF from CDN.
+
+On a phone the preview is scaled to the screen width so the full page is visible and the browser can pinch-zoom. The file is offered as an explicit **Save PDF** link (download attribute on Android and desktop; on iPhone, the share sheet or a new tab, because Safari ignores `download` on generated files). GitHub Pages cannot set `Content-Disposition` on a PDF built in the browser.
 
 ## Auth (Firebase)
 
