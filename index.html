@@ -11,7 +11,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,650&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=20260902e">
+  <link rel="stylesheet" href="styles.css?v=20260926a">
 </head>
 <body class="app">
   <a class="skip" href="#main">Skip to content</a>
@@ -252,10 +252,15 @@
         <div class="resume-tools no-print">
           <button class="btn btn-gold" type="button" id="print-btn">Print</button>
           <button class="btn btn-ink" type="button" id="pdf-btn">Download PDF</button>
+          <a class="btn btn-ink" id="pdf-file-link" hidden rel="noopener">Save PDF</a>
           <button class="btn btn-ghost" type="button" id="edit-btn">Edit details</button>
           <button class="btn btn-gold" type="button" id="to-survey-btn">Continue to survey</button>
         </div>
-        <article class="resume-sheet resume" id="resume-sheet"></article>
+        <p class="hint resume-zoom-hint no-print">Fits your screen. Pinch with two fingers to zoom in or out.</p>
+        <div class="status no-print" id="pdf-status" role="status" hidden></div>
+        <div class="resume-fit" id="resume-fit">
+          <article class="resume-sheet resume" id="resume-sheet"></article>
+        </div>
       </div>
     </section>
 
@@ -343,6 +348,9 @@
   <script src="auth.js?v=20260902e"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="app.js?v=20260902e"></script>
+  <div class="pdf-busy no-print" id="pdf-busy" hidden>
+    <p>Preparing your PDF…</p>
+  </div>
+  <script src="app.js?v=20260926a"></script>
 </body>
 </html>
